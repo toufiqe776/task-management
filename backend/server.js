@@ -11,14 +11,27 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS setup
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: '*',
     credentials: true,
   })
 );
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Database connection middleware for Serverless invocations
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection error:', error.message);
+    res.status(500).json({ success: false, message: 'Database connection failed' });
+  }
+});
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Task Manager API is running' });
@@ -29,13 +42,11 @@ app.use('/api/tasks', taskRoutes);
 
 app.use(errorMiddleware);
 
-connectDB()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error('Failed to start server:', error.message);
-    process.exit(1);
+// Local development fallback
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server is running locally on http://localhost:${PORT}`);
   });
+}
+
+export default app;
