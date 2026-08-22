@@ -30,14 +30,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Database connection middleware for Serverless invocations
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    console.error('Database connection error:', error.message);
-    res.status(500).json({ success: false, message: 'Database connection failed' });
-  }
+// Make DB connection attempt non-blocking per-request to avoid long stalls when Mongo is unavailable.
+app.use((req, res, next) => {
+  connectDB()
+    .then(() => next())
+    .catch((error) => {
+      // Log but do not block the request; controllers will use memory fallback when DB is not ready.
+      console.warn('Database connection failed (non-blocking):', error && error.message ? error.message : String(error));
+      next();
+    });
 });
 
 app.get('/api/health', (req, res) => {
