@@ -29,17 +29,16 @@ app.use(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Database connection middleware for Serverless invocations
-// Make DB connection attempt non-blocking per-request to avoid long stalls when Mongo is unavailable.
-app.use((req, res, next) => {
-  connectDB()
-    .then(() => next())
-    .catch((error) => {
-      // Log but do not block the request; controllers will use memory fallback when DB is not ready.
-      console.warn('Database connection failed (non-blocking):', error && error.message ? error.message : String(error));
-      next();
-    });
-});
+// Attempt DB connection once at startup. For serverless deployments, the app export still allows the platform to import the Express app.
+// Avoid per-request connection attempts which can create many parallel connection attempts and stall the event loop.
+connectDB().then((ok) => {
+  if (ok) {
+    console.log('Database connection established at startup');
+  } else {
+    console.warn('Database not available at startup; running in memory fallback mode');
+  }
+}).catch((err) => console.warn('Initial DB connect error:', err && err.message ? err.message : String(err)));
+
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Task Manager API is running' });
