@@ -12,10 +12,17 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // CORS setup
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['*'];
 app.use(
   cors({
-    origin: '*',
-    credentials: true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., server-to-server, curl)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error('CORS policy: Origin not allowed'));
+    },
+    // We don't use cookies for auth; JWTs are passed in Authorization header
+    credentials: false,
   })
 );
 
