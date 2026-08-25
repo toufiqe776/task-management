@@ -50,9 +50,15 @@ export const TaskCard = ({ task, onEdit, onDelete }) => {
           )}
 
           {task.weather && (
-            <div className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-              <CloudSun className="w-3.5 h-3.5 text-blue-500" />
-              <span>{task.weather.temp}°C, {task.weather.description}</span>
+            <div className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
+              {task.weather.icon ? (
+                <img src={task.weather.icon} alt="Weather icon" className="w-4 h-4 object-contain" />
+              ) : (
+                <CloudSun className="w-3.5 h-3.5 text-blue-500" />
+              )}
+              <span>
+                {task.weather.temperature ?? task.weather.temp}°C, {task.weather.description}
+              </span>
             </div>
           )}
 

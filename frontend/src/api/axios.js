@@ -1,7 +1,19 @@
-﻿import axios from 'axios';
+import axios from 'axios';
+
+const getBaseURL = () => {
+  let url = import.meta.env.VITE_API_URL;
+  if (url && typeof url === 'string') {
+    url = url.trim();
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) {
+      return url;
+    }
+    return `https://${url}`;
+  }
+  return import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
+};
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: getBaseURL(),
 });
 
 api.interceptors.request.use((config) => {
@@ -17,10 +29,20 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthRequest =
+      error.config?.url?.includes('/auth/login') ||
+      error.config?.url?.includes('/auth/register');
+
+    if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem('task_manager_token');
       localStorage.removeItem('task_manager_user');
-      window.location.href = '/login';
+      if (
+        typeof window !== 'undefined' &&
+        window.location.pathname !== '/login' &&
+        window.location.pathname !== '/register'
+      ) {
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);

@@ -12,7 +12,7 @@ const useTasks = (filters = {}, page = 1) =>
       const { data } = await api.get('/tasks', { params });
       return data;
     },
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
     staleTime: 30000,
   });
 
