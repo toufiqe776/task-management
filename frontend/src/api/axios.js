@@ -9,7 +9,9 @@ const getBaseURL = () => {
     }
     return `https://${url}`;
   }
-  return import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
+  return import.meta.env.PROD
+    ? 'https://backend-management-pi.vercel.app/api'
+    : 'http://localhost:5000/api';
 };
 
 const api = axios.create({

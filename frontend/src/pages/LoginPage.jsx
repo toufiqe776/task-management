@@ -35,7 +35,11 @@ const LoginPage = () => {
       login(data.user, data.token);
       navigate('/');
     } catch (apiError) {
-      setError(apiError.response?.data?.message || 'Login failed. Please try again.');
+      setError(
+        apiError.response?.data?.message ||
+        apiError.message ||
+        'Login failed. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }

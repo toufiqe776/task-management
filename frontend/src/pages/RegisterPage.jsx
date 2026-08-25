@@ -41,7 +41,11 @@ const RegisterPage = () => {
       register(data.user, data.token);
       navigate('/');
     } catch (apiError) {
-      setError(apiError.response?.data?.message || 'Registration failed. Please try again.');
+      setError(
+        apiError.response?.data?.message ||
+        apiError.message ||
+        'Registration failed. Please try again.'
+      );
     } finally {
       setIsLoading(false);
     }
